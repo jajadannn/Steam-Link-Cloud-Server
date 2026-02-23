@@ -28,9 +28,9 @@ sudo systemctl enable --now steamlink-hdmi-daemon.service
 
 ### Wichtig bei „Steam Link startet, aber öffnet sich nicht“
 
-Die Service-Datei startet absichtlich als Benutzer `pi` auf `tty1`, damit Steam Link im KMS-Modus wirklich ein Bild ausgeben kann.
+Die Service-Datei läuft als root (für Hardware-Events), startet **Steam Link selbst aber immer als Nicht-Root-User**. Das behebt den Fehler `cannot run as root user`.
 
-- Falls dein Benutzer nicht `pi` heißt, passe in `steamlink-hdmi-daemon.service` `User=`, `Group=`, `WorkingDirectory=`, `HOME=` und `XDG_RUNTIME_DIR=` an.
+- Falls dein Benutzer nicht `pi` heißt, passe in `steamlink-hdmi-daemon.service` `Environment=STEAMLINK_USER=...` an.
 - Log prüfen:
 
 ```bash

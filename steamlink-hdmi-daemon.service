@@ -5,13 +5,8 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-# Standard-Raspberry-User; bei Bedarf anpassen (z. B. User=deinname)
-User=pi
-Group=pi
-SupplementaryGroups=video render input audio bluetooth plugdev tty
-WorkingDirectory=/home/pi
-Environment=HOME=/home/pi
-Environment=XDG_RUNTIME_DIR=/run/user/1000
+# Läuft als root für Hardware-/CEC-Zugriff, Steam Link selbst wird im Script als Nicht-Root gestartet.
+Environment=STEAMLINK_USER=pi
 ExecStart=/usr/local/bin/steamlink-hdmi-daemon.sh
 Restart=always
 RestartSec=3

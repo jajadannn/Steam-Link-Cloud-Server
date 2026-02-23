@@ -12,6 +12,8 @@ LOG_TAG="steamlink-hdmi-daemon"
 STEAMLINK_BIN="${STEAMLINK_BIN:-/usr/bin/steamlink}"
 STEAMLINK_ARGS="${STEAMLINK_ARGS:---kms --fullscreen}"
 STEAMLINK_LOG="${STEAMLINK_LOG:-/tmp/steamlink-daemon.log}"
+# Optional überschreiben, z. B. STEAMLINK_USER=alex
+STEAMLINK_USER="${STEAMLINK_USER:-}"
 STEAMLINK_PID=""
 LAST_CONTROLLER_SIG=""
 
@@ -32,6 +34,30 @@ install_deps() {
 
   apt-get update
   apt-get install -y steamlink cec-utils jq
+}
+
+resolve_run_user() {
+  # Wenn Script bereits als normaler User läuft, diesen verwenden.
+  if [[ "${EUID}" -ne 0 ]]; then
+    id -un
+    return 0
+  fi
+
+  # Falls explizit gesetzt.
+  if [[ -n "$STEAMLINK_USER" ]]; then
+    echo "$STEAMLINK_USER"
+    return 0
+  fi
+
+  # Typischer erster Raspberry-User (UID 1000)
+  local user_1000
+  user_1000="$(awk -F: '$3==1000 {print $1; exit}' /etc/passwd || true)"
+  if [[ -n "$user_1000" ]]; then
+    echo "$user_1000"
+    return 0
+  fi
+
+  return 1
 }
 
 connected_hdmi_connectors() {
@@ -126,15 +152,28 @@ start_steamlink() {
     return
   fi
 
+  local run_user
+  if ! run_user="$(resolve_run_user)"; then
+    log "Kein geeigneter Nicht-Root-User gefunden. Setze STEAMLINK_USER=deinuser"
+    return
+  fi
+
   local display_index
   display_index="$(pick_sdl_display_index)"
 
-  log "Starte Steam Link auf Display-Index $display_index"
+  log "Starte Steam Link als User '$run_user' auf Display-Index $display_index"
 
   # shellcheck disable=SC2206
   local args=( $STEAMLINK_ARGS )
-  SDL_VIDEO_FULLSCREEN_DISPLAY="$display_index" \
-    "$STEAMLINK_BIN" "${args[@]}" >"$STEAMLINK_LOG" 2>&1 &
+
+  if [[ "${EUID}" -eq 0 ]]; then
+    runuser -u "$run_user" -- env SDL_VIDEO_FULLSCREEN_DISPLAY="$display_index" \
+      "$STEAMLINK_BIN" "${args[@]}" >"$STEAMLINK_LOG" 2>&1 &
+  else
+    SDL_VIDEO_FULLSCREEN_DISPLAY="$display_index" \
+      "$STEAMLINK_BIN" "${args[@]}" >"$STEAMLINK_LOG" 2>&1 &
+  fi
+
   STEAMLINK_PID="$!"
 
   sleep 1
