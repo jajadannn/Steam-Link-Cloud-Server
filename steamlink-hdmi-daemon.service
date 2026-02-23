@@ -1,0 +1,22 @@
+[Unit]
+Description=Steam Link HDMI/Controller Auto-Start Daemon
+After=network-online.target systemd-user-sessions.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Läuft als root für Hardware-/CEC-Zugriff, Steam Link selbst wird im Script als Nicht-Root gestartet.
+Environment=STEAMLINK_USER=pi
+ExecStart=/usr/local/bin/steamlink-hdmi-daemon.sh
+Restart=always
+RestartSec=3
+
+# Steam Link im KMS-Modus braucht i. d. R. ein TTY/VT
+StandardInput=tty
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+
+[Install]
+WantedBy=multi-user.target
