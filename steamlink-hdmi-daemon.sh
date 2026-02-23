@@ -11,6 +11,7 @@ POLL_SECONDS="${POLL_SECONDS:-2}"
 LOG_TAG="steamlink-hdmi-daemon"
 STEAMLINK_BIN="${STEAMLINK_BIN:-/usr/bin/steamlink}"
 STEAMLINK_ARGS="${STEAMLINK_ARGS:---kms --fullscreen}"
+STEAMLINK_LOG="${STEAMLINK_LOG:-/tmp/steamlink-daemon.log}"
 STEAMLINK_PID=""
 LAST_CONTROLLER_SIG=""
 
@@ -129,9 +130,18 @@ start_steamlink() {
   display_index="$(pick_sdl_display_index)"
 
   log "Starte Steam Link auf Display-Index $display_index"
+
+  # shellcheck disable=SC2206
+  local args=( $STEAMLINK_ARGS )
   SDL_VIDEO_FULLSCREEN_DISPLAY="$display_index" \
-    "$STEAMLINK_BIN" $STEAMLINK_ARGS >/tmp/steamlink-daemon.log 2>&1 &
+    "$STEAMLINK_BIN" "${args[@]}" >"$STEAMLINK_LOG" 2>&1 &
   STEAMLINK_PID="$!"
+
+  sleep 1
+  if ! kill -0 "$STEAMLINK_PID" 2>/dev/null; then
+    log "Steam Link ist direkt wieder beendet. Siehe Log: $STEAMLINK_LOG"
+    STEAMLINK_PID=""
+  fi
 }
 
 stop_steamlink() {

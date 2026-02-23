@@ -26,6 +26,18 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now steamlink-hdmi-daemon.service
 ```
 
+### Wichtig bei „Steam Link startet, aber öffnet sich nicht“
+
+Die Service-Datei startet absichtlich als Benutzer `pi` auf `tty1`, damit Steam Link im KMS-Modus wirklich ein Bild ausgeben kann.
+
+- Falls dein Benutzer nicht `pi` heißt, passe in `steamlink-hdmi-daemon.service` `User=`, `Group=`, `WorkingDirectory=`, `HOME=` und `XDG_RUNTIME_DIR=` an.
+- Log prüfen:
+
+```bash
+journalctl -u steamlink-hdmi-daemon.service -f
+cat /tmp/steamlink-daemon.log
+```
+
 ### Hinweise
 
 - CEC Power-On funktioniert nur, wenn TV/Monitor CEC unterstützt und CEC aktiviert ist.
