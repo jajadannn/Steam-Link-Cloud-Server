@@ -1,0 +1,27 @@
+[Unit]
+Description=Steam Link HDMI/Controller Auto-Start Daemon
+After=network-online.target systemd-user-sessions.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Standard-Raspberry-User; bei Bedarf anpassen (z. B. User=deinname)
+User=pi
+Group=pi
+SupplementaryGroups=video render input audio bluetooth plugdev tty
+WorkingDirectory=/home/pi
+Environment=HOME=/home/pi
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+ExecStart=/usr/local/bin/steamlink-hdmi-daemon.sh
+Restart=always
+RestartSec=3
+
+# Steam Link im KMS-Modus braucht i. d. R. ein TTY/VT
+StandardInput=tty
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+
+[Install]
+WantedBy=multi-user.target
