@@ -226,6 +226,8 @@ main_loop() {
       STEAMLINK_PID=""
     fi
 
+    log "display_is_active"
+    
     sleep "$POLL_SECONDS"
   done
 }
