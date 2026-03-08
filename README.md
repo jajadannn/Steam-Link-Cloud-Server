@@ -18,6 +18,8 @@ Dieses Repository enthält jetzt ein Script für **Raspberry Pi OS Lite 64-bit**
 ### Installation auf dem Pi
 
 ```bash
+sudo apt install git
+git clone https://github.com/jajadannn/Steam-Link-Cloud-Server.git/
 chmod +x steamlink-hdmi-daemon.sh
 sudo cp steamlink-hdmi-daemon.sh /usr/local/bin/
 sudo cp steamlink-hdmi-daemon.service /etc/systemd/system/
